@@ -6,7 +6,7 @@ http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/
     <http:listener-config name="jce-asymmetry-httpListenerConfig">
         <http:listener-connection host="0.0.0.0" port="8081" />
     </http:listener-config>
-    <crypto:jce-config name="Crypto_Jce" doc:name="Crypto Jce" doc:id="6589edb4-76ab-4951-9576-7983331aad22" keystore="C:\SudeshnaMitra\Workspaces\Mule4\jce-asymmetry-api\src\main\resources\cryptokeystore.jks" password="password123" >
+    <crypto:jce-config name="Crypto_Jce" doc:name="Crypto Jce" doc:id="6589edb4-76ab-4951-9576-7983331aad22" keystore="cryptokeystore.jks" password="password123" >
 		<crypto:jce-key-infos >
 			<crypto:jce-asymmetric-key-info keyId="crypto" alias="sampleAlias" password="password123" />
 		</crypto:jce-key-infos>
