@@ -1,0 +1,199 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:os="http://www.mulesoft.org/schema/mule/os" xmlns:crypto="http://www.mulesoft.org/schema/mule/crypto" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:apikit="http://www.mulesoft.org/schema/mule/mule-apikit" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:spring="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd http://www.mulesoft.org/schema/mule/mule-apikit http://www.mulesoft.org/schema/mule/mule-apikit/current/mule-apikit.xsd http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.1.xsd 
+http://www.mulesoft.org/schema/mule/crypto http://www.mulesoft.org/schema/mule/crypto/current/mule-crypto.xsd
+http://www.mulesoft.org/schema/mule/os http://www.mulesoft.org/schema/mule/os/current/mule-os.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+    <http:listener-config name="jce-asymmetry-httpListenerConfig">
+        <http:listener-connection host="0.0.0.0" port="8081" />
+    </http:listener-config>
+    <crypto:jce-config name="Crypto_Jce" doc:name="Crypto Jce" doc:id="6589edb4-76ab-4951-9576-7983331aad22" keystore="C:\SudeshnaMitra\Workspaces\Mule4\jce-asymmetry-api\src\main\resources\cryptokeystore.jks" password="password123" >
+		<crypto:jce-key-infos >
+			<crypto:jce-asymmetric-key-info keyId="crypto" alias="sampleAlias" password="password123" />
+		</crypto:jce-key-infos>
+	</crypto:jce-config>
+    <apikit:config name="jce-asymmetry-config" raml="jce-asymmetry.raml" outboundHeadersMapName="outboundHeaders" httpStatusVarName="httpStatus" />
+    <flow name="jce-asymmetry-main">
+        <http:listener config-ref="jce-asymmetry-httpListenerConfig" path="/api/*">
+            <http:response statusCode="#[vars.httpStatus default 200]">
+                <http:headers>#[vars.outboundHeaders default {}]</http:headers>
+            </http:response>
+            <http:error-response statusCode="#[vars.httpStatus default 500]">
+                <http:body>#[payload]</http:body>
+                <http:headers>#[vars.outboundHeaders default {}]</http:headers>
+            </http:error-response>
+        </http:listener>
+        <apikit:router config-ref="jce-asymmetry-config" />
+        <error-handler>
+            <on-error-propagate type="APIKIT:BAD_REQUEST">
+                <ee:transform xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Bad request"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus">400</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+            <on-error-propagate type="APIKIT:NOT_FOUND">
+                <ee:transform xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Resource not found"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus">404</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+            <on-error-propagate type="APIKIT:METHOD_NOT_ALLOWED">
+                <ee:transform xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Method not allowed"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus">405</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+            <on-error-propagate type="APIKIT:NOT_ACCEPTABLE">
+                <ee:transform xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Not acceptable"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus">406</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+            <on-error-propagate type="APIKIT:UNSUPPORTED_MEDIA_TYPE">
+                <ee:transform xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Unsupported media type"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus">415</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+            <on-error-propagate type="APIKIT:NOT_IMPLEMENTED">
+                <ee:transform xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Not Implemented"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus">501</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+        </error-handler>
+    </flow>
+    <flow name="jce-asymmetry-console">
+        <http:listener config-ref="jce-asymmetry-httpListenerConfig" path="/console/*">
+            <http:response statusCode="#[vars.httpStatus default 200]">
+                <http:headers>#[vars.outboundHeaders default {}]</http:headers>
+            </http:response>
+            <http:error-response statusCode="#[vars.httpStatus default 500]">
+                <http:body>#[payload]</http:body>
+                <http:headers>#[vars.outboundHeaders default {}]</http:headers>
+            </http:error-response>
+        </http:listener>
+        <apikit:console config-ref="jce-asymmetry-config" />
+        <error-handler>
+            <on-error-propagate type="APIKIT:NOT_FOUND">
+                <ee:transform xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Resource not found"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus">404</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+        </error-handler>
+    </flow>
+    <flow name="post:\jce-asymmetry:jce-asymmetry-config">
+		<flow-ref doc:name="jce-encrypt" doc:id="234789ec-7e1e-468c-8701-4b19d26829a5" name="jce-encrypt"/>
+		<flow-ref doc:name="jce-sign" doc:id="e31480b8-7b9b-4e0d-9683-ff1b42afd334" name="jce-sign"/>
+		<ee:transform xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd" doc:id="0751858f-5fc6-46fc-a47c-4beb52284551">
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+  response: "Sensitive Data Stored Successfully!"
+}]]></ee:set-payload>
+            </ee:message>
+        </ee:transform>
+    </flow>
+	<sub-flow name="jce-encrypt" doc:id="475d0c15-41a3-4646-98de-8f9e4e486968" >
+		<logger level="INFO" doc:name="Before Encryption Logger" doc:id="a4664ecb-0a97-4db3-a659-5cdd2e68a78e" message="Before encrypting: #[payload]" />
+		<crypto:jce-encrypt doc:name="Jce encrypt" doc:id="4c6187ae-14a8-43dd-bc4f-f28b9c3fff6b" config-ref="Crypto_Jce" keyId="crypto" algorithm="RSA" target="dataencrypted" />
+		<logger level="INFO" doc:name="After Encryption Logger" doc:id="47100037-27dc-44fe-a24c-4c804bfdc65f" message="After encrypt: #[vars.dataencrypted]" />
+		<os:store doc:name="Store Encrypted Data" doc:id="cddbb063-101f-48a8-b930-e151b1064b48" key="#[attributes.queryParams.datakey]">
+			<os:value><![CDATA[#[vars.dataencrypted]]]></os:value>
+		</os:store>
+	</sub-flow>
+	<sub-flow name="jce-sign" doc:id="c41d7d77-5fd8-4c5e-bd08-f21e306bc45c" >
+		<logger level="INFO" doc:name="Before Signature Logger" doc:id="43c4d689-e89a-490a-9b7d-5809a2ba2cf7" message="Before sign: #[vars.dataencrypted]" />
+		<crypto:jce-sign doc:name="Jce sign" doc:id="ac17daf8-53b5-4255-a224-06ea7274edb4" config-ref="Crypto_Jce" algorithm="SHA256withRSA" keyId="crypto" target="jcesign">
+			<crypto:content><![CDATA[#[vars.dataencrypted]]]></crypto:content>
+		</crypto:jce-sign>
+		<logger level="INFO" doc:name="After Signature Logger" doc:id="be037cf7-c139-4382-ae29-eb02e2c1ef7a" message="After sign: #[vars.jcesign]" />
+		<os:store doc:name="Store Signature Data" doc:id="6909add1-d42c-4d2f-8b86-3ce753474507" key="signkey">
+			<os:value><![CDATA[#[vars.jcesign]]]></os:value>
+		</os:store>
+	</sub-flow>
+	<flow name="get:\jce-asymmetry\(datakey):jce-asymmetry-config">
+		<flow-ref doc:name="jce-validate" doc:id="59c2704d-b169-44f0-b45e-43c3a5796d2f" name="jce-validate"/>
+        <flow-ref doc:name="jce-decrypt" doc:id="1e519d4d-b7c9-42ce-ba58-9e50526f4140" name="jce-decrypt"/>
+		<ee:transform xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd" doc:id="0c55ad51-1313-4543-8a45-73b076f17720">
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+  response: "Fetched successfully!",
+  data: vars.datadecerypted
+}]]></ee:set-payload>
+            </ee:message>
+        </ee:transform>
+    </flow>
+	<sub-flow name="jce-validate" doc:id="10f2e711-206b-4634-a7fb-9fdc56afe7d8" >
+		<logger level="INFO" doc:name="Before Validation Logger" doc:id="ca5e4b98-c290-4fea-b2a5-050cca305b06" message="Before validating" />
+		<os:retrieve doc:name="Retrieve Encrypted Data" doc:id="8edcfe81-bb9f-4e0e-8d53-271c841ee3dc" key="#[attributes.uriParams.datakey]" target="retrievedencryptdata" >
+			<error-mapping sourceType="OS:INVALID_KEY" targetType="APP:INVALID KEY ENTERED" />
+		</os:retrieve>
+		<os:retrieve doc:name="Retrieve Signature Data" doc:id="b70e95e8-c797-4b95-9176-9d02c357c38b" key="signkey" target="retievesigndata" />
+		<crypto:jce-validate doc:name="Jce validate" doc:id="fb0aecdd-87d7-44a8-a4bc-5f962226a32f" config-ref="Crypto_Jce" expected="#[vars.retievesigndata]" algorithm="SHA256withRSA" keyId="crypto" value="#[vars.retrievedencryptdata]">
+			<error-mapping sourceType="CRYPTO:VALIDATION" targetType="APP:INCORRECT VALIDATION" />
+		</crypto:jce-validate>
+		<logger level="INFO" doc:name="After Validation Logger" doc:id="a8550454-0377-4e91-acd8-96070ef08ecd" message="After validating" />
+	</sub-flow>
+	<sub-flow name="jce-decrypt" doc:id="d8517544-e4a4-4cb4-8fe4-cd25e35aac9a" >
+		<logger level="INFO" doc:name="Before Decryption Logger" doc:id="7b405bf5-94d5-4838-93fe-75f92f8abbc1" message="Before decryption: #[vars.retrievedencryptdata]" />
+		<crypto:jce-decrypt doc:name="Jce decrypt" doc:id="2abb844b-834f-4a93-aa9d-9420bb906282" config-ref="Crypto_Jce" algorithm="RSA" keyId="crypto" target="datadecerypted">
+			<crypto:content><![CDATA[#[vars.retrievedencryptdata]]]></crypto:content>
+		</crypto:jce-decrypt>
+		<logger level="INFO" doc:name="After Decryption Logger" doc:id="496db7c1-1164-4312-8634-5e34bf75e623" message="Decrypted data is: #[vars.datadecerypted]" />
+	</sub-flow>
+</mule>

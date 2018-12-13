@@ -1,0 +1,24 @@
+{
+  "configs": [
+    "jce-asymmetry.xml"
+  ],
+  "secureProperties": [],
+  "redeploymentEnabled": true,
+  "name": "jce-asymmetry-api",
+  "minMuleVersion": "4.1.2",
+  "requiredProduct": "MULE_EE",
+  "classLoaderModelLoaderDescriptor": {
+    "id": "mule",
+    "attributes": {
+      "exportedPackages": [],
+      "exportedResources": [
+        "api\\.gitignore",
+        "api\\jce-asymmetry.raml"
+      ]
+    }
+  },
+  "bundleDescriptorLoader": {
+    "id": "mule",
+    "attributes": {}
+  }
+}

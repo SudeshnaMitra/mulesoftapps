@@ -1,0 +1,22 @@
+#%RAML 1.0
+title: jce-asymmetry
+description: This API enable global encryption and decryption of data while storing and retrieving from object store
+
+/jce-asymmetry:
+  post:
+    description: Method used to store sensitive data with data key
+    queryParameters: 
+      datakey:   
+    responses:
+      201:
+        body: 
+          application/json:
+            example: {response: Data Posted Successfully!}
+  /{datakey}:
+    description: Retrieve data from store using data key
+    get:
+      responses: 
+        200:
+          body: 
+            application/json:
+              example: {response: Data fetched sucessfully!}
